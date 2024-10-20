@@ -1,0 +1,61 @@
+import speech_recognition as sr
+import pyttsx3
+import wikipediaapi
+
+# Initialize the text-to-speech engine
+engine = pyttsx3.init()
+
+# Function to speak text
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# Initialize the recognizer
+recognizer = sr.Recognizer()
+
+# Function to listen for voice input
+def listen():
+    with sr.Microphone() as source:
+        print("Listening for your query...")
+        audio = recognizer.listen(source)
+
+        try:
+            query = recognizer.recognize_google(audio)
+            print(f"User said: {query}")
+            return query
+        except sr.UnknownValueError:
+            speak("Sorry, I didn't catch that. Could you please repeat?")
+            return None
+        except sr.RequestError:
+            speak("Sorry, there seems to be a network issue.")
+            return None
+
+# Function to fetch Wikipedia summary
+def search_wikipedia(query):
+    wiki_wiki = wikipediaapi.Wikipedia('en')
+    page = wiki_wiki.page(query)
+    
+    if page.exists():
+        return page.summary[:500]  # Limiting the summary to the first 500 characters
+    else:
+        return "Sorry, I couldn't find any information on that topic."
+
+# Main function to run the voice assistant
+def wikipedia_assistant():
+    speak("Welcome to the Wikipedia voice assistant. How can I help you?")
+    
+    while True:
+        query = listen()
+        
+        if query is None:
+            continue
+        
+        if "exit" in query.lower() or "stop" in query.lower():
+            speak("Goodbye!")
+            break
+        
+        summary = search_wikipedia(query)
+        speak(summary)
+
+# Start the assistant
+wikipedia_assistant()
